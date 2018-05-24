@@ -3,8 +3,8 @@
 import pyperclip, socket, threading
 from time import sleep
 
-ADDR1 = ("localhost", 40080)
-ADDR2 = ("localhost", 40082)
+ADDR1 = ("localhost", 40082)
+ADDR2 = ("localhost", 40080)
 
 def receiver() :
     listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -35,8 +35,4 @@ if __name__ == '__main__' :
     t = threading.Thread( target=sender, args=() )
     t.start()
     receiver()
-
-
-
-
 

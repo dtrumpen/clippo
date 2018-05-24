@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import pyperclip, socket, threading
+import pyperclip, socket
 
 from random import random
 from time import sleep
@@ -16,26 +16,7 @@ def Tcp_Read( s ):
 
 ADDR = ( "10.0.2.2", 17098 )
 
-
-def receiver( sock ) :
-    print "receiver started"
-    CLIP = pyperclip.paste()
-    while True :
-        # attendi una clipboard, se cambiata copiala
-        rcv = Tcp_Read( sock ).split( ' ' )
-        print "rcv=%s" % rcv
-        cmd = rcv[0]
-        if cmd == 'clipboard' :
-            size = int(rcv[1])      # A: rcv[1] rappresenta un numero intero
-            clip = sock.recv(size)
-    #       print "remote clipboard=%s" % clip
-            if clip != CLIP :
-                CLIP = clip
-                pyperclip.copy(clip)
-
-
 def sender() :
-    print "sender started"
     CLIP = pyperclip.paste()
     while True :
         sleep( 1 + random() ) # sleep 1 + random() second
@@ -55,12 +36,8 @@ if __name__ == '__main__' :
     sock.send( 'hi from client\r' )
     print Tcp_Read( sock )
 
-    # SENDER    direzione client -> server
-    t = threading.Thread( target=sender, args=() )
-    t.start()
-    
-    # RECEIVER  direzione server  -> client
-    receiver( sock )
+    sender()    # direzione client -> server
+    print Tcp_Read( sock )
 
     # Shutdown, close
  #  sock.shutdown( socket.SHUT_RDWR )
