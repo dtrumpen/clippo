@@ -47,6 +47,7 @@ class Clippo :
                     CLIP = clip
                     pyperclip.copy(clip)
             elif cmd == 'shutdown' :
+                Clippo.STOP = True
                 return
 
     def sender( self ) :
