@@ -2,7 +2,7 @@
 
 import socket
 
-from clip import Clippo, STOP
+from clippo import Clippo, STOP
 
 ADDR = ( "localhost", 17098 )
 NCLIENT = 4
@@ -19,7 +19,7 @@ if __name__ == '__main__' :
  
     # SIGINT will normally raise a KeyboardInterrupt
     try :
-        clippo = Clippo( conn, addr )
+        clippo = Clippo( conn, addr, 'server' )
     except KeyboardInterrupt :
         print( "W: interrupt received, stopping...." )
         STOP = True

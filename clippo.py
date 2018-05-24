@@ -11,12 +11,13 @@ STOP = False
 
 class Clippo :
     
-    def __init__( self, sock, addr ) :
+    def __init__( self, sock, addr, mode ) :
         print "Clippo(%s,%s)" % ( sock, addr )
         self.sock = sock
         self.addr = addr
+        self.mode = mode  # mode is 'client' or 'server'
         # ---- HI ------------------------------------------------------
-        self.sock.send( 'hi from server\r' )
+        self.sock.send( 'hi from %s\r' % self.mode )
         print self.read_command()
         # ---- SENDER --------------------------------------------------
         self.sender_task = threading.Thread( target=self.sender )
@@ -47,6 +48,8 @@ class Clippo :
                 if clip != CLIP :
                     CLIP = clip
                     pyperclip.copy(clip)
+            elif cmd == 'shutdown' :
+                return
 
     def sender( self ) :
         print "sender started"
