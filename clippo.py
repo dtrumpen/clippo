@@ -15,8 +15,8 @@ class Clippo :
         self.addr = addr
         self.mode = mode  # mode is 'client' or 'server'
         # ---- HI ------------------------------------------------------
-        self.sock.send( 'hi from %s\r' % self.mode )
-        print self.read_command()
+   #    self.sock.send( 'hi from %s\r' % self.mode )
+   #    print self.read_command()
         # ---- SENDER --------------------------------------------------
         self.sender_task = threading.Thread( target=self.sender )
         self.sender_task.start()
