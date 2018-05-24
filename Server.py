@@ -6,45 +6,65 @@ from random import random
 from time import sleep
 
 
-def Tcp_Read( conn ) :
-    a = ' '
-    b = ''
-    while a != '\r':
-        a = conn.recv(1)
-        b = b + a
-    return b
-
 ADDR = ( "localhost", 17098 )
 NCLIENT = 4
+STOP = False
 
 
-def receiver( sock ) :
-    print "receiver started"
-    CLIP = pyperclip.paste()
-    while True :
-        # attendi una clipboard, se cambiata copiala
-        rcv = Tcp_Read( sock ).split( ' ' )
-        print "rcv=%s" % rcv
-        cmd = rcv[0]
-        if cmd == 'clipboard' :
-            size = int(rcv[1])      # A: rcv[1] rappresenta un numero intero
-            clip = sock.recv(size)
-    #       print "remote clipboard=%s" % clip
+class Clippo :
+    
+    def __init__( self, sock, addr ) :
+        print "Clippo(%s,%s)" % ( sock, addr )
+        self.sock = sock
+        self.addr = addr
+        # ---- HI ------------------------------------------------------
+        self.sock.send( 'hi from server\r' )
+        print self.read_command()
+        # ---- SENDER --------------------------------------------------
+        self.sender_task = threading.Thread( target=self.sender )
+        self.sender_task.start()
+        # ---- RECEIVER --------------------------------------------------
+        self.receiver()
+
+    def read_command( self ) :
+        a = ' '
+        b = ''
+        while a != '\r':
+            a = self.sock.recv(1)
+            b = b + a
+        return b
+
+    def receiver( self ) :
+        print "receiver started"
+        CLIP = pyperclip.paste()
+        while True :
+            # attendi una clipboard, se cambiata copiala
+            rcv = self.read_command().split( ' ' )
+            print "rcv=%s" % rcv
+            cmd = rcv[0]
+            if cmd == 'clipboard' :
+                size = int(rcv[1])      # A: rcv[1] rappresenta un numero intero
+                clip = self.sock.recv(size)
+        #       print "remote clipboard=%s" % clip
+                if clip != CLIP :
+                    CLIP = clip
+                    pyperclip.copy(clip)
+
+    def sender( self ) :
+        print "sender started"
+        CLIP = pyperclip.paste()
+        while True :
+            if STOP :
+                return
+            sleep( 1 + random() ) # sleep 1 + random() second
+            clip = pyperclip.paste()
             if clip != CLIP :
                 CLIP = clip
-                pyperclip.copy(clip)
+                self.sock.send( 'clipboard %d \r' % len(clip) )
+                self.sock.send( clip )
 
 
-def sender( sock ) :
-    print "sender started"
-    CLIP = pyperclip.paste()
-    while True :
-        sleep( 1 + random() ) # sleep 1 + random() second
-        clip = pyperclip.paste()
-        if clip != CLIP :
-            CLIP = clip
-            sock.send( 'clipboard %d \r' % len(clip) )
-            sock.send( clip )
+
 
 
 if __name__ == '__main__' :
@@ -55,19 +75,15 @@ if __name__ == '__main__' :
     sock.listen( NCLIENT )
     # Accept, create a new socket to handle the new connection
     conn, addr = sock.accept()
-    
-    # HI
-    conn.send( 'hi from server\r' )
-    print Tcp_Read( conn )
-    
-    # SENDER
-    t = threading.Thread( target=sender, args=(conn,) )
-    t.start()
-
-    # RECEIVER
-    receiver( conn )
-    
-    # Shutdown, close
-    conn.send( 'shutdown\r' )
-    conn.shutdown( socket.SHUT_RDWR )
-    conn.close()
+ 
+    # SIGINT will normally raise a KeyboardInterrupt
+    try :
+        clippo = Clippo( conn, addr )
+    except KeyboardInterrupt :
+        print( "W: interrupt received, stopping...." )
+        STOP = True
+    finally :
+        # Shutdown, close
+        conn.send( 'shutdown\r' )
+        conn.shutdown( socket.SHUT_RDWR )
+        conn.close()
