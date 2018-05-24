@@ -6,13 +6,11 @@ from random import random
 from time import sleep
 
 
-STOP = False
-
-
 class Clippo :
     
     def __init__( self, sock, addr, mode ) :
         print "Clippo(%s,%s)" % ( sock, addr )
+        Clippo.STOP = False
         self.sock = sock
         self.addr = addr
         self.mode = mode  # mode is 'client' or 'server'
@@ -55,7 +53,7 @@ class Clippo :
         print "sender started"
         CLIP = pyperclip.paste()
         while True :
-            if STOP :
+            if Clippo.STOP :
                 return
             sleep( 1 + random() ) # sleep 1 + random() second
             clip = pyperclip.paste()

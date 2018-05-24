@@ -2,7 +2,7 @@
 
 import socket
 
-from clippo import Clippo, STOP
+from clippo import Clippo
    
 
 ADDR = ( "10.0.2.2", 17098 )
@@ -20,9 +20,9 @@ if __name__ == '__main__' :
         clippo = Clippo( sock, ADDR, 'client' )
     except KeyboardInterrupt :
         print( "W: interrupt received, stopping...." )
-        STOP = True
+        Clippo.STOP = True
     finally :
         # Shutdown, close
-    #   sock.send( 'shutdown\r' )
+    #   sock.send( 'shutdown \r' )
     #   sock.shutdown( socket.SHUT_RDWR )
         sock.close()

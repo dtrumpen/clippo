@@ -2,7 +2,7 @@
 
 import socket
 
-from clippo import Clippo, STOP
+from clippo import Clippo
 
 ADDR = ( "localhost", 17098 )
 NCLIENT = 4
@@ -22,9 +22,9 @@ if __name__ == '__main__' :
         clippo = Clippo( conn, addr, 'server' )
     except KeyboardInterrupt :
         print( "W: interrupt received, stopping...." )
-        STOP = True
+        Clippo.STOP = True
     finally :
         # Shutdown, close
-        conn.send( 'shutdown\r' )
+        conn.send( 'shutdown \r' )
         conn.shutdown( socket.SHUT_RDWR )
         conn.close()
