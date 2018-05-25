@@ -14,6 +14,7 @@ class Clippo :
         self.sock = sock
         self.addr = addr
         self.mode = mode  # mode is 'client' or 'server'
+        self.CLIP = pyperclip.paste()
         # ---- HI ------------------------------------------------------
    #    self.sock.send( 'hi from %s\r' % self.mode )
    #    print self.read_command()
@@ -31,9 +32,18 @@ class Clippo :
             b = b + a
         return b
 
+    def recv_n_bytes( self, n ) :
+        "Convenience method for receiving exactly n bytes from self.sock"
+        data = ''
+        while len(data) < n :
+            chunk = self.sock.recv(n - len(data))
+            if chunk == '' :
+                break
+            data += chunk
+        return data
+
     def receiver( self ) :
         print "receiver started"
-        CLIP = pyperclip.paste()
         while True :
             # attendi una clipboard, se cambiata copiala
             rcv = self.read_command().split( ' ' )
@@ -41,10 +51,10 @@ class Clippo :
             cmd = rcv[0]
             if cmd == 'clipboard' :
                 size = int(rcv[1])      # A: rcv[1] rappresenta un numero intero
-                clip = self.sock.recv(size)
+                clip = self.recv_n_bytes(size)
         #       print "remote clipboard=%s" % clip
-                if clip != CLIP :
-                    CLIP = clip
+                if clip != self.CLIP :
+                    self.CLIP = clip
                     pyperclip.copy(clip)
             elif cmd == 'shutdown' :
                 Clippo.STOP = True
@@ -52,13 +62,12 @@ class Clippo :
 
     def sender( self ) :
         print "sender started"
-        CLIP = pyperclip.paste()
         while True :
             if Clippo.STOP :
                 return
             sleep( 1 + random() ) # sleep 1 + random() second
             clip = pyperclip.paste()
-            if clip != CLIP :
-                CLIP = clip
-                self.sock.send( 'clipboard %d \r' % len(clip) )
-                self.sock.send( clip )
+            if clip != self.CLIP :
+                self.CLIP = clip
+                self.sock.sendall( 'clipboard %d \r' % len(clip) )
+                self.sock.sendall( clip )
